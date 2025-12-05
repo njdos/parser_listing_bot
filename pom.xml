@@ -13,7 +13,7 @@
     </parent>
 
     <groupId>com.example</groupId>
-    <artifactId>parser_bithumb_bot</artifactId>
+    <artifactId>parser_listing_bot</artifactId>
     <version>1.0.0</version>
     <name>parser_bithumb_bot</name>
 
