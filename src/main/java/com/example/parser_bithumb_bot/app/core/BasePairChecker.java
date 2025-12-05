@@ -25,9 +25,8 @@ public abstract class BasePairChecker {
     public void init() {
         try {
             knownPairs = fetchPairs();
-            System.out.println(getExchangeName() + " initial pairs: " + knownPairs.size());
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -46,7 +45,7 @@ public abstract class BasePairChecker {
             String mess = String.format("Checked %s — total: %s, new: %s,    Time: %s",
                     getExchangeName(), current.size(), newPairs.size(), time);
 
-            if (!newPairs.isEmpty()) {
+            if (!knownPairs.isEmpty() && !newPairs.isEmpty()) {
                 StringBuilder msg = new StringBuilder();
                 msg.append("🔥 NEW on ").append(getExchangeName())
                         .append(" at ").append(time).append("\n");
