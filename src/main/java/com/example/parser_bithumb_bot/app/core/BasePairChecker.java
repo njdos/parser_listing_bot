@@ -40,22 +40,22 @@ public abstract class BasePairChecker {
 
             String time = LocalDateTime.now().format(dtf);
 
+            String mess = String.format("Checked %s — total: %s, new: %s",
+                    getExchangeName(), current.size(), newPairs.size());
+
             if (!newPairs.isEmpty()) {
                 StringBuilder msg = new StringBuilder();
                 msg.append("🔥 NEW on ").append(getExchangeName())
-                        .append(" at ").append(time).append(":\n");
+                        .append(" at ").append(time).append("\n");
 
                 for (String p : newPairs) msg.append("- ").append(p).append("\n");
+
+                msg.append("\n").append("\n").append(mess);
 
                 sendMessage(msg.toString());
             }
 
-            String mess = String.format("Checked %s — total: %s, new: %s",
-                    getExchangeName(), current.size(), newPairs.size());
-
-            sendMessage(mess);
-
-            System.out.println(mess);
+            System.out.println(mess + ",    Time: " + time);
 
             knownPairs = current;
 
