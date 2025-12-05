@@ -2,10 +2,14 @@ package com.example.parser_bithumb_bot.app.core;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class BasePairChecker {
+
+    private static final HashMap<String, String> lastLog = new HashMap<>();
 
     protected static final DateTimeFormatter dtf =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -39,9 +43,8 @@ public abstract class BasePairChecker {
             }
 
             String time = LocalDateTime.now().format(dtf);
-
-            String mess = String.format("Checked %s — total: %s, new: %s",
-                    getExchangeName(), current.size(), newPairs.size());
+            String mess = String.format("Checked %s — total: %s, new: %s,    Time: %s",
+                    getExchangeName(), current.size(), newPairs.size(), time);
 
             if (!newPairs.isEmpty()) {
                 StringBuilder msg = new StringBuilder();
@@ -55,12 +58,17 @@ public abstract class BasePairChecker {
                 sendMessage(msg.toString());
             }
 
-            System.out.println(mess + ",    Time: " + time);
+            System.out.println(mess);
 
             knownPairs = current;
+            lastLog.put(getExchangeName(), mess);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static Map<String, String> getLastLog() {
+        return lastLog;
     }
 }

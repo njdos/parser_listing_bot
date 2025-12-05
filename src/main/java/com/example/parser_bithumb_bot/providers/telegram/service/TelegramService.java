@@ -1,9 +1,12 @@
 package com.example.parser_bithumb_bot.providers.telegram.service;
 
+import com.example.parser_bithumb_bot.app.core.BasePairChecker;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.util.Map;
 
 @Service
 public class TelegramService extends TelegramLongPollingBot {
@@ -38,8 +41,21 @@ public class TelegramService extends TelegramLongPollingBot {
 
     private void handleUpdate(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
+
             long chatId = update.getMessage().getChatId();
             String message = update.getMessage().getText();
+
+            if (message.equalsIgnoreCase("/info")) {
+                Map<String, String> lastLog = BasePairChecker.getLastLog();
+                StringBuilder sb = new StringBuilder();
+
+                for (Map.Entry<String, String> entry : lastLog.entrySet()) {
+                    sb.append(entry.getValue()).append("\n");
+                }
+
+                sendMessage(chatId, sb.toString());
+                return;
+            }
 
             sendMessage(chatId, "You said: " + message);
         }
