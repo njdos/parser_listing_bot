@@ -1,5 +1,9 @@
 package com.example.parser_bithumb_bot.app.core;
 
+import com.example.parser_bithumb_bot.providers.gate.GateAPI;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -7,7 +11,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Component
 public abstract class BasePairChecker {
+
+    @Autowired
+    private GateAPI gateAPI;
 
     private static final HashMap<String, String> lastLog = new HashMap<>();
 
@@ -50,7 +58,9 @@ public abstract class BasePairChecker {
                 msg.append("🔥 NEW on ").append(getExchangeName())
                         .append(" at ").append(time).append("\n");
 
-                for (String p : newPairs) msg.append("- ").append(p).append("\n");
+                for (String p : newPairs) {
+                    msg.append("- ").append(p).append("\n");
+                }
 
                 msg.append("\n").append("\n").append(mess);
 
@@ -61,6 +71,7 @@ public abstract class BasePairChecker {
 
             knownPairs = current;
             lastLog.put(getExchangeName(), mess);
+//            gateAPI.placeLong(newPairs);
 
         } catch (Exception e) {
             e.printStackTrace();
