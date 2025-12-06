@@ -20,7 +20,7 @@ public class GateMarketService {
     private static final RestTemplate rest = new RestTemplate();
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public Map<String, GateMarketInfo> getMarketInfo(Set<String> tokens) {
+    public Map<String, GateMarketInfo> getMarketInfo() {
         Map<String, GateMarketInfo> map = new HashMap<>();
         try {
             String resp = rest.getForObject(TICKERS_URL, String.class);

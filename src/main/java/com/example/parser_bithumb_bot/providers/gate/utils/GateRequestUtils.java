@@ -27,15 +27,14 @@ public class GateRequestUtils {
         return Hex.encodeHexString(hash);
     }
 
-    public static String postJson(String url, String body, String apiKey, String sign, String timestamp) throws Exception {
+    public static ResponseEntity<String> postJson(String url, String body, String apiKey, String sign, String timestamp) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("KEY", apiKey);
         headers.add("SIGN", sign);
         headers.add("Timestamp", timestamp);
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<String> resp = rest.exchange(url, HttpMethod.POST, entity, String.class);
-        return resp.getBody();
+        return rest.exchange(url, HttpMethod.POST, entity, String.class);
     }
 
     public static String get(String url) {

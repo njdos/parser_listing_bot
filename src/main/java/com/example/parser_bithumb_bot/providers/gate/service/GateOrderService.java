@@ -4,6 +4,7 @@ import com.example.parser_bithumb_bot.providers.gate.dto.GateOrderRequest;
 import com.example.parser_bithumb_bot.providers.gate.utils.GateRequestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +22,7 @@ public class GateOrderService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String setLeverage(String contract, int leverage) throws Exception {
+    public ResponseEntity<String> setLeverage(String contract, int leverage) throws Exception {
         String path = String.format(POS_LEVERAGE_PATH, contract);
         String query = "leverage=" + leverage;
         String body = "{}";
@@ -35,7 +36,7 @@ public class GateOrderService {
         return GateRequestUtils.postJson(url, body, API_KEY, sign, timestamp);
     }
 
-    public String placeOrder(GateOrderRequest order) throws Exception {
+    public ResponseEntity<String> placeOrder(GateOrderRequest order) throws Exception {
         String body = objectMapper.writeValueAsString(order);
         String bodyHash = GateRequestUtils.sha512Hex(body);
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000L);
@@ -43,6 +44,34 @@ public class GateOrderService {
         String sign = GateRequestUtils.hmacSHA512(preSign, SECRET_KEY);
         return GateRequestUtils.postJson(ORDER_URL, body, API_KEY, sign, timestamp);
     }
+
+//    public ResponseEntity<String> sendTrigger(String contract, String side, long size, double triggerPrice) throws Exception {
+//
+//        Map<String, Object> obj = new HashMap<>();
+//        obj.put("contract", contract);
+//        obj.put("size", String.valueOf(size));
+//        obj.put("side", side);
+//        obj.put("reduce_only", true);
+//        obj.put("tif", "gtc");
+//
+//        Map<String, Object> trigger = new HashMap<>();
+//        trigger.put("strategy_type", 0);
+//        trigger.put("price_type", "mark");
+//        trigger.put("trigger_price", String.valueOf(triggerPrice));
+//
+//        obj.put("trigger", trigger);
+//
+//        String body = new ObjectMapper().writeValueAsString(obj);
+//
+//        String bodyHash = GateRequestUtils.sha512Hex(body);
+//        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+//        String preSign = "POST\n/api/v4/futures/usdt/orders\n\n" + bodyHash + "\n" + timestamp;
+//        String sign = GateRequestUtils.hmacSHA512(preSign, SECRET_KEY);
+//
+//        return GateRequestUtils.postJson(
+//                "https://fx-api.gateio.ws/api/v4/futures/usdt/orders", body, API_KEY, sign, timestamp);
+//    }
+
 
     public long calculateContracts(double usdtAmount, int leverage, double entryPrice,
                                    int quantoMultiplier, double step, double minSize) {
