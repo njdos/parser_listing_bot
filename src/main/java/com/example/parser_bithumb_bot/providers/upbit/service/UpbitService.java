@@ -23,8 +23,9 @@ public class UpbitService {
         Set<String> pairs = new HashSet<>();
 
         for (JsonNode item : data) {
-            if (item.has("english_name")) {
-                pairs.add(item.get("english_name").asText());
+            if (item.has("market")) {
+                String market = item.get("market").asText();
+                pairs.add(market.split("-")[1]);
             }
         }
 
