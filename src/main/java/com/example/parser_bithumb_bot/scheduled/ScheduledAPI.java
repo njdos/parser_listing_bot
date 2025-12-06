@@ -34,7 +34,7 @@ public class ScheduledAPI {
 
     @Scheduled(fixedDelay = 30000)
     public void runPlaceOrder() {
-        gateAPI.placeLong(Set.of("BOB"));
+        gateAPI.placePosition(Set.of("BOB"), true);
     }
 
 }
