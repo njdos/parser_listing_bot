@@ -71,7 +71,7 @@ public abstract class BasePairChecker {
 
             knownPairs = current;
             lastLog.put(getExchangeName(), mess);
-            gateAPI.placePosition(newPairs, true);
+            if (!newPairs.isEmpty()) gateAPI.placePosition(newPairs, true);
 
         } catch (Exception e) {
             e.printStackTrace();
