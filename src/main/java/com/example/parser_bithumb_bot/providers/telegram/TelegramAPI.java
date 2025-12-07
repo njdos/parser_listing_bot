@@ -10,7 +10,7 @@ public class TelegramAPI {
     @Autowired
     private TelegramService telegramService;
 
-    public void sendTelegramMessage(Long chatId, String text) {
-        telegramService.sendMessage(chatId, text);
+    public void sendTelegramMessage(String text) {
+        telegramService.sendMessage(text);
     }
 }

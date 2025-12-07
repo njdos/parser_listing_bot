@@ -18,17 +18,18 @@ public class TelegramService extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "FreeFireBithumb";
+        return "Crypto Listing Parser Bot";
     }
 
     @Override
     public String getBotToken() {
-        return "8474781102:AAGa4ZvSPv8Vh8QU6vVczxbX0Lp5vVAjAeU";
+        return "8156206670:AAGWbZw3kK1FPbs_GzCNODdMbow3ECSKo8Y";
     }
 
-    public void sendMessage(Long chatId, String text) {
+    public void sendMessage(String text) {
         SendMessage msg = SendMessage.builder()
-                .chatId(chatId != null ? chatId.toString() : "971483502")
+                .chatId("-1003304663557")
+                .messageThreadId(6)
                 .text(text)
                 .parseMode("Markdown")
                 .build();
@@ -42,7 +43,6 @@ public class TelegramService extends TelegramLongPollingBot {
     private void handleUpdate(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
 
-            long chatId = update.getMessage().getChatId();
             String message = update.getMessage().getText();
 
             if (message.equalsIgnoreCase("/info")) {
@@ -53,11 +53,11 @@ public class TelegramService extends TelegramLongPollingBot {
                     sb.append(entry.getValue()).append("\n");
                 }
 
-                sendMessage(chatId, sb.toString());
+                sendMessage(sb.toString());
                 return;
             }
 
-            sendMessage(chatId, "You said: " + message);
+            sendMessage("You said: " + message);
         }
     }
 }

@@ -46,7 +46,7 @@ public class GatePlaceOrderService {
 
                 if (mi == null || ci == null) {
                     System.out.println("Missing info for: " + token);
-                    telegramAPI.sendTelegramMessage(null, "Missing info for: " + token);
+                    telegramAPI.sendTelegramMessage("Missing info for: " + token);
                     continue;
                 }
 
@@ -57,12 +57,12 @@ public class GatePlaceOrderService {
 
                 ResponseEntity<String> respLeverage = orderService.setLeverage(ci.getName(), leverage);
                 if (respLeverage.getStatusCode().is2xxSuccessful()) {
-                    telegramAPI.sendTelegramMessage(null,
+                    telegramAPI.sendTelegramMessage(
                             "🔔 LEVERAGE UPDATED\n" +
                                     "Token: " + token + "\n" +
                                     "New leverage: " + leverage);
                 } else {
-                    telegramAPI.sendTelegramMessage(null,
+                    telegramAPI.sendTelegramMessage(
                             "❌ ERROR updating leverage for " + token +
                                     "\nResponse: " + respLeverage.getBody());
                 }
@@ -77,7 +77,7 @@ public class GatePlaceOrderService {
                 );
                 if (size <= 0) {
                     System.out.println("Size too small for " + token);
-                    telegramAPI.sendTelegramMessage(null, "Size too small for " + token);
+                    telegramAPI.sendTelegramMessage("Size too small for " + token);
                     continue;
                 }
 
@@ -91,14 +91,14 @@ public class GatePlaceOrderService {
 
                 ResponseEntity<String> respOrder = orderService.placeOrder(req);
                 if (respOrder.getStatusCode().is2xxSuccessful()) {
-                    telegramAPI.sendTelegramMessage(null,
+                    telegramAPI.sendTelegramMessage(
                             "🔔 ORDER FILLED\n" +
                                     "Token: " + token + "\n" +
                                     "Side: " + (isLong ? "LONG" : "SHORT") + "\n" +
                                     "Size: " + size + "\n" +
                                     "Entry: " + mi.getMarkPrice());
                 } else {
-                    telegramAPI.sendTelegramMessage(null,
+                    telegramAPI.sendTelegramMessage(
                             "❌ ERROR placing order for " + token +
                                     "\nResponse: " + respOrder.getBody());
                 }
@@ -115,10 +115,10 @@ public class GatePlaceOrderService {
 //                if (tpPrice > 0) {
 //                    ResponseEntity<String> respTp = orderService.sendTrigger(ci.getName(), side, size, tpPrice);
 //                    if (respTp.getStatusCode().is2xxSuccessful()) {
-//                        telegramAPI.sendTelegramMessage(null,
+//                        telegramAPI.sendTelegramMessage(
 //                                "🎯 TP SET for " + token + " at " + tpPrice);
 //                    } else {
-//                        telegramAPI.sendTelegramMessage(null,
+//                        telegramAPI.sendTelegramMessage(
 //                                "❌ ERROR setting TP for " + token +
 //                                        "\nResponse: " + respTp.getBody());
 //                    }
@@ -128,10 +128,10 @@ public class GatePlaceOrderService {
 //                if (slPrice > 0) {
 //                    ResponseEntity<String> respSl = orderService.sendTrigger(ci.getName(), side, size, slPrice);
 //                    if (respSl.getStatusCode().is2xxSuccessful()) {
-//                        telegramAPI.sendTelegramMessage(null,
+//                        telegramAPI.sendTelegramMessage(
 //                                "🛑 SL SET for " + token + " at " + slPrice);
 //                    } else {
-//                        telegramAPI.sendTelegramMessage(null,
+//                        telegramAPI.sendTelegramMessage(
 //                                "❌ ERROR setting SL for " + token +
 //                                        "\nResponse: " + respSl.getBody());
 //                    }

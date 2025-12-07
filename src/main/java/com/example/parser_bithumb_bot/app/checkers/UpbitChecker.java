@@ -35,6 +35,6 @@ public class UpbitChecker extends BasePairChecker {
 
     @Override
     protected void sendMessage(String msg) {
-        telegramAPI.sendTelegramMessage(null, msg);
+        telegramAPI.sendTelegramMessage(msg);
     }
 }

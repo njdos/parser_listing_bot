@@ -33,8 +33,8 @@ public class BithumbChecker extends BasePairChecker {
         return "Bithumb";
     }
 
-    @Override
-    protected void sendMessage(String msg) {
-        telegramAPI.sendTelegramMessage(null, msg);
+    protected
+    @Override void sendMessage(String msg) {
+        telegramAPI.sendTelegramMessage(msg);
     }
 }

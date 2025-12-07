@@ -15,6 +15,6 @@ public class StartupNotifier {
     @EventListener(ApplicationReadyEvent.class)
     public void sendStartupMessage() {
         String message = "Програма успішно запущена!";
-        telegramAPI.sendTelegramMessage(null, message);
+        telegramAPI.sendTelegramMessage(message);
     }
 }
