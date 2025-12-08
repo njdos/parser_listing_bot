@@ -1,15 +1,23 @@
 package com.example.parser_bithumb_bot.providers.telegram.service;
 
 import com.example.parser_bithumb_bot.app.core.BasePairChecker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
 
 @Service
 public class TelegramService extends TelegramLongPollingBot {
+
+    @Value("${telegram.chat.id:}")
+    private Long CHAT_ID;
+
+    @Value("${telegram.message.thread.id:}")
+    private Integer MESSAGE_THREAD_ID;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -28,8 +36,8 @@ public class TelegramService extends TelegramLongPollingBot {
 
     public void sendMessage(String text) {
         SendMessage msg = SendMessage.builder()
-                .chatId("-1003304663557")
-                .messageThreadId(6)
+                .chatId(CHAT_ID.toString())
+                .messageThreadId(MESSAGE_THREAD_ID)
                 .text(text)
                 .parseMode("Markdown")
                 .build();
@@ -41,9 +49,15 @@ public class TelegramService extends TelegramLongPollingBot {
     }
 
     private void handleUpdate(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
+        Message updMess = update.getMessage();
 
-            String message = update.getMessage().getText();
+        if (!updMess.getChatId().equals(CHAT_ID)
+                || !updMess.getMessageThreadId().equals(MESSAGE_THREAD_ID)) {
+            return;
+        }
+
+        if (update.hasMessage() && updMess.hasText()) {
+            String message = updMess.getText();
 
             if (message.equalsIgnoreCase("/info")) {
                 Map<String, String> lastLog = BasePairChecker.getLastLog();
