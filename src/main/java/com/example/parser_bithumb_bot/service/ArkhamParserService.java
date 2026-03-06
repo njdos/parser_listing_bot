@@ -30,7 +30,7 @@ public class ArkhamParserService {
         String chain = driver.findElement(By.cssSelector(".TokenNameCard-module__IP_nTq__selectedChain img")).getAttribute("alt");
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
-        double limit = 10_000_000;
+        double limit = 3_000_000;
 
         List<Map<String, Object>> holdersData = (List<Map<String, Object>>) js.executeScript(
                 """
@@ -128,9 +128,7 @@ public class ArkhamParserService {
         List<WebElement> usdInputs = driver.findElements(By.xpath("//input[@placeholder='No minimum']"));
         WebElement usdMin = usdInputs.getFirst();
         usdMin.click();
-        usdMin.sendKeys(Keys.DELETE);
-        usdMin.sendKeys(Keys.DELETE);
-        usdMin.sendKeys("3000000");
+        usdMin.sendKeys("900000");
 
         WebElement tokenInput = driver.findElement(By.xpath("//input[@placeholder='Search for a token']"));
         tokenInput.sendKeys(info.coinName());
