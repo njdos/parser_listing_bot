@@ -30,7 +30,7 @@ public class ArkhamParserService {
         String chain = driver.findElement(By.cssSelector(".TokenNameCard-module__IP_nTq__selectedChain img")).getAttribute("alt");
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
-        double limit = 3_000_000;
+        double limit = 30_000_000;
 
         List<Map<String, Object>> holdersData = (List<Map<String, Object>>) js.executeScript(
                 """
@@ -82,22 +82,6 @@ public class ArkhamParserService {
         return new CoinInfo(coinName, chain, topHolders);
     }
 
-    private boolean validateToken(WebDriver driver, String token) {
-        WebElement marketCapEl = driver.findElement(By.xpath(
-                "//div[contains(@class,'Token-module__Yf_0Ha__marketDataCell')]" +
-                        "[.//div[contains(text(),'market cap')]]//div[contains(@class,'Token-module__Yf_0Ha__marketDataValue')]"
-        ));
-        String marketCapText = marketCapEl.getText().replaceAll("[$,]", "").trim();
-        double marketCap = Double.parseDouble(marketCapText);
-
-        if (marketCap < MIN_CAP || marketCap > MAX_CAP) {
-            System.out.println("Market cap не підходить для токена " + token + ": " + marketCap);
-            return false;
-        }
-
-        return true;
-    }
-
     public void addAlert(WebDriver driver, CoinInfo info) throws Exception {
         driver.get("https://intel.arkm.com/alerts");
 
@@ -105,10 +89,12 @@ public class ArkhamParserService {
 
         String alertNameText = info.coinName() + " Top Whale Alert";
 
-        if (alertExists(driver, alertNameText)) {
-            System.out.println("⚠ Alert already exists: " + alertNameText);
-            return;
-        }
+        deleteAlertIfExists(driver, alertNameText);
+
+//        if (!alertExists(driver, alertNameText)) {
+//            System.out.println("⚠ Alert already exists: " + alertNameText);
+//            return;
+//        }
 
         driver.findElement(By.cssSelector(".AlertsHome-module__8qJDSG__createAlertButton")).click();
 
@@ -125,10 +111,10 @@ public class ArkhamParserService {
             whoseTransfers.clear();
         }
 
-        List<WebElement> usdInputs = driver.findElements(By.xpath("//input[@placeholder='No minimum']"));
-        WebElement usdMin = usdInputs.getFirst();
+        WebElement usdMin = driver.findElement(By.xpath("//input[@placeholder='No minimum']"));
         usdMin.click();
-        usdMin.sendKeys("900000");
+        usdMin.sendKeys(Keys.BACK_SPACE);
+        usdMin.sendKeys("3000000");
 
         WebElement tokenInput = driver.findElement(By.xpath("//input[@placeholder='Search for a token']"));
         tokenInput.sendKeys(info.coinName());
@@ -181,6 +167,22 @@ public class ArkhamParserService {
         return false;
     }
 
+    private boolean validateToken(WebDriver driver, String token) throws Exception {
+        WebElement marketCapEl = driver.findElement(By.xpath(
+                "//div[contains(@class,'Token-module__Yf_0Ha__marketDataCell')]" +
+                        "[.//div[contains(text(),'market cap')]]//div[contains(@class,'Token-module__Yf_0Ha__marketDataValue')]"
+        ));
+        String marketCapText = marketCapEl.getText().replaceAll("[$,]", "").trim();
+        double marketCap = Double.parseDouble(marketCapText);
+
+        if (marketCap < MIN_CAP || marketCap > MAX_CAP) {
+            System.out.println("Market cap не підходить для токена " + token + ": " + marketCap);
+            return false;
+        }
+
+        return true;
+    }
+
     private boolean alertExists(WebDriver driver, String alertName) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
@@ -192,5 +194,50 @@ public class ArkhamParserService {
                         .map(e => e.innerText.trim().toLowerCase())
                         .includes(name);
                 """, alertName);
+    }
+
+    private void deleteAlertIfExists(WebDriver driver, String alertName) throws InterruptedException {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
+        Boolean exists = (Boolean) js.executeScript("""
+        const name = arguments[0].toLowerCase();
+        const items = document.querySelectorAll('.NavBar-module__8u-qnq__name');
+
+        for (const el of items) {
+            if (el.innerText.trim().toLowerCase() === name) {
+                el.click();
+                return true;
+            }
+        }
+        return false;
+    """, alertName);
+
+        if (!exists) return;
+
+        Thread.sleep(2000);
+
+        js.executeScript("""
+        const btns = document.querySelectorAll('button');
+        for (const b of btns) {
+            if (b.innerText.includes('DELETE ALERT')) {
+                b.click();
+                break;
+            }
+        }
+    """);
+
+        Thread.sleep(1500);
+
+        js.executeScript("""
+        const btns = document.querySelectorAll('button');
+        for (const b of btns) {
+            if (b.innerText.trim() === 'DELETE') {
+                b.click();
+                break;
+            }
+        }
+    """);
+
+        Thread.sleep(2000);
     }
 }
