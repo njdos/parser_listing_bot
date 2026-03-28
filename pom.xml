@@ -18,8 +18,33 @@
     <name>parser_bithumb_bot</name>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>mchv-release</id>
+            <name>MCHV Release Apache Maven Packages</name>
+            <url>https://mvn.mchv.eu/repository/mchv</url>
+        </repository>
+        <repository>
+            <id>mchv-snapshot</id>
+            <name>MCHV Snapshot Apache Maven Packages</name>
+            <url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>it.tdlight</groupId>
+                <artifactId>tdlight-java-bom</artifactId>
+                <version>3.4.0+td.1.8.26</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Основний Spring Boot -->
@@ -53,6 +78,24 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-natives</artifactId>
+            <classifier>windows_amd64</classifier>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -18,7 +18,7 @@ public class UpbitChecker extends BasePairChecker {
     @Autowired
     private TelegramAPI telegramAPI;
 
-    @PostConstruct
+//    @PostConstruct
     public void initChecker() {
         init();
     }

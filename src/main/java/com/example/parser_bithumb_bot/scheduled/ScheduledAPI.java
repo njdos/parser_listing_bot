@@ -15,12 +15,12 @@ public class ScheduledAPI {
     @Autowired
     private UpbitChecker upbitChecker;
 
-    @Scheduled(fixedDelay = 30000)
+//    @Scheduled(fixedDelay = 30000)
     public void runChecksBithumbChecker() {
         bithumbChecker.check();
     }
 
-    @Scheduled(fixedDelay = 30000)
+//    @Scheduled(fixedDelay = 30000)
     public void runChecksUpbitChecker() {
         upbitChecker.check();
     }
