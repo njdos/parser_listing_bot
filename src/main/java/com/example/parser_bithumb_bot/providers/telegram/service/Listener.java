@@ -1,10 +1,13 @@
 package com.example.parser_bithumb_bot.providers.telegram.service;
 
-import com.example.parser_bithumb_bot.providers.telegram.model.ListingEvent;
+import com.example.parser_bithumb_bot.app.core.TradeDispatcher;
+import com.example.parser_bithumb_bot.app.model.ListingEvent;
 import it.tdlight.Init;
 import it.tdlight.client.*;
 import it.tdlight.jni.TdApi;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -13,35 +16,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor
 public class Listener {
 
+    private final TradeDispatcher dispatcher;
+
     private SimpleTelegramClient client;
+    private SimpleTelegramClientFactory factory;
+    public static final List<String> targetSource = List.of("bithumb", "upbit");
+    private static final ConcurrentHashMap<String, Boolean> listingTokens = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() throws Exception {
         Init.init();
-        try (SimpleTelegramClientFactory factory = new SimpleTelegramClientFactory()) {
-            var apiToken = new APIToken(35054448, "685f7150c6d811ca11bbd08bedef0086");
-            TDLibSettings settings = TDLibSettings.create(apiToken);
-            settings.setUseTestDatacenter(false);
 
-            Path sessionPath = Paths.get("tdlight-session");
-            settings.setDatabaseDirectoryPath(sessionPath.resolve("data"));
-            settings.setDownloadedFilesDirectoryPath(sessionPath.resolve("downloads"));
+        this.factory = new SimpleTelegramClientFactory();
 
-            SimpleTelegramClientBuilder builder = factory.builder(settings);
-            var auth = AuthenticationSupplier.consoleLogin();
+        var apiToken = new APIToken(35054448, "685f7150c6d811ca11bbd08bedef0086");
+        TDLibSettings settings = TDLibSettings.create(apiToken);
+        settings.setUseTestDatacenter(false);
 
-            builder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
-            builder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
+        Path sessionPath = Paths.get("tdlight-session");
+        settings.setDatabaseDirectoryPath(sessionPath.resolve("data"));
+        settings.setDownloadedFilesDirectoryPath(sessionPath.resolve("downloads"));
 
-            this.client = builder.build(auth);
+        SimpleTelegramClientBuilder builder = factory.builder(settings);
+        var auth = AuthenticationSupplier.consoleLogin();
 
-            System.out.println("🚀 Telegram client started");
+        builder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
+        builder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
+
+        this.client = builder.build(auth);
+
+        System.out.println("🚀 Telegram client started");
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (factory != null) {
+            factory.close();
         }
+        System.out.println("🛑 Telegram client stopped");
     }
 
     private void onUpdateAuthorizationState(TdApi.UpdateAuthorizationState update) {
@@ -74,28 +94,33 @@ public class Listener {
 
     private void onUpdateNewMessage(TdApi.UpdateNewMessage update) {
         TdApi.Message msg = update.message;
-
         if (!(msg.content instanceof TdApi.MessageText textMsg)) {
             return;
         }
 
-        parseMessage(msg.chatId, textMsg.text.text)
-                .filter(events -> !events.isEmpty())
-                .ifPresentOrElse(events -> events.stream().forEach(event -> {
+        parseMessage(msg.chatId, textMsg.text.text.toLowerCase())
+                .stream()
+                .flatMap(List::stream)
+                .filter(ListingEvent::isActive)
+                .filter(event -> !isDuplicate(event))
+                .forEach(event -> {
+                    dispatcher.dispatch(event).subscribe();
+
                     System.out.println("🚀 EVENT:");
                     System.out.println("Token: " + event.getShortName());
                     System.out.println("Source: " + event.getSource());
                     System.out.println("Action: " + event.getAction());
                     System.out.println("----");
-                }), () -> {
-                    System.out.println("🚀 Some other test:");
-                    System.out.println(msg.chatId);
-                    System.out.println(textMsg.text.text);
                 });
     }
 
+    private boolean isDuplicate(ListingEvent event) {
+        String key = event.getShortName() + "_" + event.getAction();
+        return listingTokens.putIfAbsent(key, true) != null;
+    }
+
     private Optional<List<ListingEvent>> parseMessage(long chatId, String text) {
-        if (chatId == -1001124574831L) {
+         if (chatId == 777000L || chatId == -1001124574831L) {
             return Optional.of(List.of(parseCoinListing(text)));
         } else if (chatId == -1001772001929L) {
             return parseRicklerAlerts(text);
@@ -113,31 +138,47 @@ public class Listener {
         if (sourceMatcher.find()) {
             event.setSource(sourceMatcher.group(1));
         }
-        if (text.toLowerCase().contains("listed")) {
+        if (text.contains("listed")) {
             event.setAction("listed");
-        } else if (text.toLowerCase().contains("added")) {
+        } else if (text.contains("added")) {
             event.setAction("added");
-        } else if (text.toLowerCase().contains("announced")) {
+        } else if (text.contains("announced")) {
             event.setAction("announced");
         }
+        event.setActive(targetSource, "listed");
         return event;
     }
 
     private Optional<List<ListingEvent>> parseRicklerAlerts(String text) {
         List<ListingEvent> events = new ArrayList<>();
-        var matcher = Pattern.compile("\\$(\\w+)").matcher(text);
-        while (matcher.find()) {
+
+        Matcher tokenMatcher = Pattern.compile("\\$(\\w+)").matcher(text);
+
+        Matcher sourceMatcher = Pattern.compile("(?i)([A-Za-z ]+?)\\s+(lists|added|announced)").matcher(text);
+        String source = null;
+        if (sourceMatcher.find()) {
+            source = sourceMatcher.group(1).replaceAll("[^A-Za-z ]", "").replaceAll("\\s+", " ").trim();
+        }
+
+        String action = null;
+        if (text.contains("lists")) {
+            action = "listed";
+        } else if (text.contains("added")) {
+            action = "added";
+        } else if (text.contains("announced")) {
+            action = "announced";
+        }
+
+        while (tokenMatcher.find()) {
             ListingEvent event = new ListingEvent();
-            String token = matcher.group(1);
-            event.setShortName(token);
+            event.setShortName(tokenMatcher.group(1));
             event.setRawText(text);
-            var sourceMatcher = Pattern.compile("([A-Za-z]+) lists").matcher(text);
-            if (sourceMatcher.find()) {
-                event.setSource(sourceMatcher.group(1));
-            }
-            event.setAction("listed");
+            event.setSource(source);
+            event.setAction(action);
+            event.setActive(targetSource, "listed");
             events.add(event);
         }
+
         return events.isEmpty() ? Optional.empty() : Optional.of(events);
     }
 }

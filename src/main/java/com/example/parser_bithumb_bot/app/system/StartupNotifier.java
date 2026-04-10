@@ -18,7 +18,7 @@ public class StartupNotifier {
 
     @EventListener(ApplicationReadyEvent.class)
     public void sendStartupMessage() {
-        if ("prod".equalsIgnoreCase(appMode)) {
+        if ("prod".equals(appMode)) {
             telegramAPI.sendTelegramMessage("Application Successfully Started!");
         } else {
             System.out.println("Application Successfully Started! in " + appMode + " mode");

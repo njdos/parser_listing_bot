@@ -1,28 +1,18 @@
 package com.example.parser_bithumb_bot.scheduled;
 
-import com.example.parser_bithumb_bot.app.checkers.BithumbChecker;
-import com.example.parser_bithumb_bot.app.checkers.UpbitChecker;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.parser_bithumb_bot.app.core.ActualPrice;
+import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
+@AllArgsConstructor
 public class ScheduledAPI {
 
-    @Autowired
-    private BithumbChecker bithumbChecker;
+    private final ActualPrice actualPrice;
 
-    @Autowired
-    private UpbitChecker upbitChecker;
-
-//    @Scheduled(fixedDelay = 30000)
-    public void runChecksBithumbChecker() {
-        bithumbChecker.check();
+    @Scheduled(fixedRate = 60_000)
+    public void updatePrices() {
+        actualPrice.updatePrices().subscribe();
     }
-
-//    @Scheduled(fixedDelay = 30000)
-    public void runChecksUpbitChecker() {
-        upbitChecker.check();
-    }
-
 }
