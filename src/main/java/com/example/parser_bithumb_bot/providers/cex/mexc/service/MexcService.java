@@ -8,6 +8,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Service
@@ -33,7 +35,11 @@ public class MexcService {
                         p -> Double.parseDouble(p.getPrice())
                 )
                 .onErrorResume(e -> {
-                    System.out.println("MEXC ERROR: " + e.getMessage());
+                    String time = LocalDateTime.now()
+                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                    System.out.println("[" + time + "] MEXC ERROR: " + e.getMessage());
+
                     return Mono.empty();
                 });
     }
