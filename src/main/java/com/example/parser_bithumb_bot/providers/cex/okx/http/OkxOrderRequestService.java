@@ -1,11 +1,11 @@
 package com.example.parser_bithumb_bot.providers.cex.okx.http;
 
 import com.example.parser_bithumb_bot.providers.cex.okx.config.OkxCredentials;
-import com.example.parser_bithumb_bot.providers.cex.okx.utils.OkxParserUtils;
 import com.example.parser_bithumb_bot.providers.cex.okx.utils.OkxSignatureUtil;
 import com.example.parser_bithumb_bot.providers.cex.okx.utils.OkxTimeUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class OkxOrderRequestService {
 
@@ -43,61 +44,42 @@ public class OkxOrderRequestService {
                 .bodyToMono(String.class);
     }
 
-    public Mono<String> setLeverage(String instId, int leverage, boolean isLong) {
+    public Mono<String> setLeverage(String instId, int leverage, boolean isShort) {
         String path = "/api/v5/account/set-leverage";
 
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("instId", instId);
         bodyMap.put("lever", String.valueOf(leverage));
         bodyMap.put("mgnMode", "isolated");
-        bodyMap.put("posSide", isLong ? "long" : "short");
+        bodyMap.put("posSide", isShort ? "short" : "long");
 
         return request("POST", path, bodyMap);
     }
 
-    public Mono<String> placeMarketOrder(String instId, String size) {
+    public Mono<String> placeMarketOrder(String instId, String size, boolean isShort) {
+        String side = isShort ? "sell" : "buy";
+        String posSide = isShort ? "short" : "long";
+
         return request("POST", "/api/v5/trade/order", Map.of(
                 "instId", instId,
                 "tdMode", "isolated",
-                "side", "buy",
-                "posSide", "long",
+                "side", side,
+                "posSide", posSide,
                 "ordType", "market",
                 "sz", size
         ));
     }
 
-    public Mono<String> closePosition(String instId, String size) {
+    public Mono<String> closePosition(String instId, String size, boolean isShort) {
+        String side = isShort ? "buy" : "sell";
+        String posSide = isShort ? "short" : "long";
+
         return request("POST", "/api/v5/trade/order", Map.of(
                 "instId", instId,
                 "tdMode", "isolated",
-                "side", "sell",
-                "posSide", "long",
+                "side", side,
+                "posSide", posSide,
                 "ordType", "market",
-                "sz", size
-        ));
-    }
-
-    // ================= SHORT =================
-
-    public Mono<String> openShort(String instId, String size) {
-        return request("POST", "/api/v5/trade/order", Map.of(
-                "instId", instId,
-                "tdMode", "isolated",
-                "side", "sell",
-                "posSide", "short",
-                "ordType", "market",
-                "sz", size
-        ));
-    }
-
-    public Mono<String> closeShort(String instId, String size) {
-        return request("POST", "/api/v5/trade/order", Map.of(
-                "instId", instId,
-                "tdMode", "isolated",
-                "side", "buy",
-                "posSide", "short",
-                "ordType", "market",
-                "reduceOnly", true,
                 "sz", size
         ));
     }
@@ -147,7 +129,7 @@ public class OkxOrderRequestService {
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .doOnNext(resp -> System.out.println(" ----- PATH: " + path + " BODY: " + body + " RESPONSE: " + resp));
+                    .doOnNext(resp -> log.info(" ----- PATH: {} |  BODY: {} | RESPONSE: {}", path, body, resp));
         } catch (Exception e) {
             return Mono.error(e);
         }

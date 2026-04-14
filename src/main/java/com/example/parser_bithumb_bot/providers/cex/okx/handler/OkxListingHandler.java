@@ -40,10 +40,10 @@ public class OkxListingHandler implements OkxTradeHandler {
         }
 
         String instId = symbol + "-USDT-SWAP";
-        if (!activeTrades.add(instId)) {
-            System.out.println("ALREADY RUNNING: " + instId);
-            return Mono.empty();
-        }
+//        if (!activeTrades.add(instId)) {
+//            System.out.println("ALREADY RUNNING: " + instId);
+//            return Mono.empty();
+//        }
 
         Double price = actualPrice.getPrice(symbol);
         if (price == null || price <= 0) {
