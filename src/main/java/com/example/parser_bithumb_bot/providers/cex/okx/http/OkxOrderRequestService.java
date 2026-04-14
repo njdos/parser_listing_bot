@@ -1,4 +1,4 @@
-package com.example.parser_bithumb_bot.providers.cex.okx.service;
+package com.example.parser_bithumb_bot.providers.cex.okx.http;
 
 import com.example.parser_bithumb_bot.providers.cex.okx.config.OkxCredentials;
 import com.example.parser_bithumb_bot.providers.cex.okx.utils.OkxParserUtils;
@@ -43,14 +43,14 @@ public class OkxOrderRequestService {
                 .bodyToMono(String.class);
     }
 
-    public Mono<String> setLeverage(String instId, int leverage) {
+    public Mono<String> setLeverage(String instId, int leverage, boolean isLong) {
         String path = "/api/v5/account/set-leverage";
 
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("instId", instId);
         bodyMap.put("lever", String.valueOf(leverage));
         bodyMap.put("mgnMode", "isolated");
-        bodyMap.put("posSide", "long");
+        bodyMap.put("posSide", isLong ? "long" : "short");
 
         return request("POST", path, bodyMap);
     }

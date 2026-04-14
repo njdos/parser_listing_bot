@@ -15,9 +15,12 @@ public class TradeDispatcher {
 
     private final List<TradeExecutor> executors;
 
-    public Mono<Void> dispatch(ListingEvent event) {
-        return Flux.fromIterable(executors)
-                .flatMap(executor -> executor.execute(event))
+    public Mono<Void> dispatch(List<ListingEvent> events) {
+        return Flux.fromIterable(events)
+                .flatMap(event ->
+                        Flux.fromIterable(executors)
+                                .flatMap(executor -> executor.execute(event))
+                )
                 .then();
     }
 
