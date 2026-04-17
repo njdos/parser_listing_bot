@@ -1,12 +1,15 @@
 package com.example.parser_bithumb_bot.providers.cex.okx.service;
 
 import com.example.parser_bithumb_bot.providers.cex.okx.dto.Instrument;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+@Slf4j
 @Service
 public class OkxCalculation {
 
@@ -14,7 +17,12 @@ public class OkxCalculation {
 
     public Instrument extractInstrument(String response) {
         try {
-            var node = objectMapper.readTree(response).path("data").get(0);
+            JsonNode jsonNode = objectMapper.readTree(response);
+            var node = jsonNode.path("data").get(0);
+            if (node == null) {
+                log.info("Data is empty: {}", jsonNode.get("msg"));
+                return null;
+            }
 
             Instrument instrument = new Instrument();
 

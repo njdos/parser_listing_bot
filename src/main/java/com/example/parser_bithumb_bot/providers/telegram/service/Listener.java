@@ -9,6 +9,7 @@ import it.tdlight.jni.TdApi;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class Listener {
@@ -47,7 +49,7 @@ public class Listener {
 
         this.client = builder.build(auth);
 
-        System.out.println("🚀 Telegram client started");
+        log.info("🚀 Telegram client started");
     }
 
     @PreDestroy
@@ -55,22 +57,22 @@ public class Listener {
         if (factory != null) {
             factory.close();
         }
-        System.out.println("🛑 Telegram client stopped");
+        log.info("🛑 Telegram client stopped");
     }
 
     private void onUpdateAuthorizationState(TdApi.UpdateAuthorizationState update) {
         var state = update.authorizationState;
 
         if (state instanceof TdApi.AuthorizationStateWaitCode) {
-            System.out.print("Enter code: ");
+            log.info("Enter code: ");
             String code = new Scanner(System.in).nextLine();
             client.send(new TdApi.CheckAuthenticationCode(code), null);
         } else if (state instanceof TdApi.AuthorizationStateWaitPassword) {
-            System.out.print("Enter 2FA password: ");
+            log.info("Enter 2FA password: ");
             String password = new Scanner(System.in).nextLine();
             client.send(new TdApi.CheckAuthenticationPassword(password), null);
         } else if (state instanceof TdApi.AuthorizationStateReady) {
-            System.out.println("✅ Logged in");
+            log.info("✅ Logged in");
         }
     }
 
@@ -80,10 +82,18 @@ public class Listener {
             return;
         }
 
+        if (msg.chatId == -1001124574831l || msg.chatId == 8623006011l) {
+            log.info("Target message: {}", textMsg.text.text);
+        } else {
+            return;
+        }
+
         List<ListingEvent> events = ListingParser.parse(textMsg.text.text);
         if (events.isEmpty()) return;
 
-        dispatcher.dispatch(events).subscribe();
+        dispatcher.dispatch(events)
+                .doOnError(e -> log.error("DISPATCH ERROR", e))
+                .subscribe();
     }
 
 }

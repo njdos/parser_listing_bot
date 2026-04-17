@@ -53,7 +53,7 @@ public class ListingService {
         AtomicBoolean active = new AtomicBoolean(true);
         AtomicBoolean finished = new AtomicBoolean(false);
 
-        String shortNameCoin = "$" + ctx.instId().replace("-USDT-SWAP" , "");
+        String shortNameCoin = "$" + ctx.instId().replace("-USDT-SWAP", "");
 
         String subscribe = """
                 {
@@ -70,7 +70,7 @@ public class ListingService {
 
                             Mono<Void> sendSubscribe =
                                     session.send(Mono.just(session.textMessage(subscribe))
-                                            .doOnSuccess(s ->  log.warn("{} ✅ STRATEGY STARTED", shortNameCoin)));
+                                            .doOnSuccess(s -> log.warn("{} ✅ STRATEGY STARTED", shortNameCoin)));
 
                             // ✅ ПІНГ ЗАЛИШИВ
                             Mono<Void> sendPing =
@@ -108,15 +108,10 @@ public class ListingService {
                                         double pnl = calculatePnlPercent(entry.get(), price, ctx.leverage(), isShort.get());
                                         log.info("{} [{}] price={} entry={} max={} pnl={}%", shortNameCoin, side, price, entry.get(), max.get(), pnl);
 
-                                        // =========================
-                                        // 🔻 REVERSAL LONG → SHORT
-                                        // =========================
+                                        if (pnl < -TradingConfig.REVERSAL_DROP) {
+                                            log.info("\uD83D\uDD3B CLOSE ALL coin: {}, side: {}, pnl: {}%", shortNameCoin, side, pnl);
 
-                                        if (!isShort.get()) {
-                                            double drop = calculatePnlPercent(max.get(), price, ctx.leverage(), isShort.get());
-                                            log.info("{} [LONG DROP]: {}%", shortNameCoin, drop);
-
-                                            if (drop < -TradingConfig.REVERSAL_DROP) {
+                                            if (!isShort.get()) {
                                                 return closeAll(ctx.instId(), remaining, isShort.get())
                                                         .then(requestService.setLeverage(ctx.instId(), ctx.leverage(), true))
                                                         .then(requestService.placeMarketOrder(ctx.instId(), ctx.size().toPlainString(), true))
@@ -127,13 +122,7 @@ public class ListingService {
                                                             remaining.set(ctx.size());
                                                             Arrays.fill(triggered, false);
                                                         });
-                                            }
-                                        }
-                                        if (isShort.get()) {
-                                            double rise = calculatePnlPercent(max.get(), price, ctx.leverage(), isShort.get());
-                                            log.info("{} [SHORT RISE]: {}%", shortNameCoin, rise);
-
-                                            if (rise < -TradingConfig.REVERSAL_DROP) {
+                                            } else {
                                                 return closeAll(ctx.instId(), remaining, isShort.get())
                                                         .doOnSuccess(v -> {
                                                             active.set(false);

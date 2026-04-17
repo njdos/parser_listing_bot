@@ -1,6 +1,7 @@
 package com.example.parser_bithumb_bot.providers.cex.mexc.service;
 
 import com.example.parser_bithumb_bot.providers.cex.mexc.model.MexcPrice;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class MexcService {
 
@@ -38,7 +40,7 @@ public class MexcService {
                     String time = LocalDateTime.now()
                             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-                    System.out.println("[" + time + "] MEXC ERROR: " + e.getMessage());
+                    log.info("MEXC ERROR: {}", e.getMessage());
 
                     return Mono.empty();
                 });

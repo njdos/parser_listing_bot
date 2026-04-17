@@ -2,6 +2,7 @@ package com.example.parser_bithumb_bot.app.core;
 
 import com.example.parser_bithumb_bot.providers.cex.mexc.MexcAPI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ActualPrice {
@@ -20,7 +22,7 @@ public class ActualPrice {
     public Mono<Void> updatePrices() {
         return mexcAPI.getAllPrices()
                 .onErrorResume(e -> {
-                    System.out.println("PRICE UPDATE ERROR: " + e.getMessage());
+                    log.info("PRICE UPDATE ERROR: {}", e.getMessage());
                     return Mono.empty();
                 })
                 .map(prices -> {
@@ -39,11 +41,11 @@ public class ActualPrice {
                     if (!newMap.isEmpty()) {
                         cache = newMap;
                     } else {
-                        System.out.println("SKIP EMPTY PRICE UPDATE");
+                        log.info("SKIP EMPTY PRICE UPDATE");
                     }
                 })
                 .onErrorResume(e -> {
-                    System.out.println("CACHE ERROR: " + e.getMessage());
+                    log.info("CACHE ERROR: {}", e.getMessage());
                     return Mono.empty();
                 })
                 .then();

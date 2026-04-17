@@ -3,12 +3,14 @@ package com.example.parser_bithumb_bot.providers.cex.okx.handler;
 import com.example.parser_bithumb_bot.app.model.ListingEvent;
 import com.example.parser_bithumb_bot.app.service.TradeExecutor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OkxListingTradeProcessor implements TradeExecutor {
@@ -22,7 +24,7 @@ public class OkxListingTradeProcessor implements TradeExecutor {
                 .next()
                 .flatMap(handler -> handler.handle(event))
                 .switchIfEmpty(Mono.fromRunnable(() ->
-                        System.out.println("NO HANDLER FOR: " + event.getAction())
+                        log.info("NO HANDLED | coin: {} | type: {}", event.getShortName(), event.getAction())
                 ));
     }
 
